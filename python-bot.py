@@ -18,11 +18,18 @@ logging.basicConfig(
 save_order(first_name, text_model)
 
 async def verify_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    text = update.message.text.lower()
-    if text in 'tela':
-        text_model = text[4:]
-        first_name = update.effective_user.first_name
-        save_order(first_name, text_model)
+    try:
+        text = update.message.text.lower().strip()
+    except Exception as e:
+        logging.error(e)
+        return
+    else:        
+        if text in 'tela':
+            quantity_of_display = text[2:]
+            print(quantity_of_display)
+            text_model = text[4:]
+            first_name = update.effective_user.first_name
+           
 
 
     
