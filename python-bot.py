@@ -4,6 +4,9 @@ from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, Messa
 from dotenv import load_dotenv
 import os 
 from pathlib import Path
+import re
+
+REXEX_SERVICES = re.compile(r'\b(tela|telas|bateria|pelicula|peliculas|capinhas)\b', re.IGNORECASE)
 
 
 load_dotenv()
@@ -18,33 +21,44 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=logging.INFO
 )
-     
+async def save_order(update: Update, context: ContextTypes.DEFAULT_TYPE):
+
+async def save_order_pelicula(update: Update, context: ContextTypes.DEFAULT_TYPE):
+
+
+async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not IMAGE.exists():
+        logging.ERROR("Error in found dir of images")
+        return   
+
+    images = list(IMAGE.glob("*.[pj][pn]g"))
+
+    for img_path in images:
+        with open(img_path, "rb") as photo:
+            await context.bot.send_photo(
+                chat_id=update.effective_chat.id,
+                photo=photo,
+                caption=f"📷 Examples como enviar mensagem para o BOT: {img_path.name}"
+            )
+            logging.INFO(f"Send photos {img_path}")
+
+
 async def verify_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = update.message.text.lower()
     logging.info(f"Received message: {text} from user: {update.effective_user.first_name}")
 
-     # Check if the text starts with 'tela' or 'telas'
-     # Example: 'tela 2 samsung' or 'telas 3 iphone'
-     # Extract quantity and model
-     # Default quantity to 1 if not specified
-    parts = text.split(maxsplit=2) # divided of in 3 parts.
-    if len(parts) >= 2 and parts[0].isdigit():
-        if parts[1] not in ('telas', 'tela', 'bateria'):
-            FILE_PATH = IMAGE / "example_order_display.png"
-            if FILE_PATH.exists():
-                with open(FILE_PATH, 'rb') as photo:      
-                    await context.bot.send_photo(chat_id=update.effective_chat.id, caption=f"*Por favor adcionar conforme a foto*",photo=photo, parse_mode="MarkDownV2")
-            else:  
-                quantity = parts[0]
-                text_model = " ".join(parts[1:])
-                first_name = update.effective_user.first_name
-                await context.bot.send_message(
-                chat_id=update.effective_chat.id,
-                text=f"{first_name} *Adicionado o pedido: {quantity} {text_model} com sucesso*",
-                parse_mode='MarkdownV2')
-
-    
-        #else if text_model in ('pelicula', 'peliculas', 'capinhas'):
+    match = REXEX_SERVICES.search(text)
+    if match:
+        word = match.group(1).lower()
+        if "bateria" in word:
+            await save_order(update, context)
+        elif "tela" in word:
+            await save_order(update, context)
+        elif "pel" in word:  
+            await save_order_pelicula(update, context)
+    else:
+        await help_command(update, context)
+  
  
 if __name__ == '__main__':
 
