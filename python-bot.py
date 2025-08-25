@@ -1,5 +1,5 @@
 import logging
-from telegram import Update, InputMediaPhoto
+from telegram import Update
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, MessageHandler, filters
 from dotenv import load_dotenv
 import os 
@@ -25,7 +25,7 @@ async def save_order(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def save_order_pelicula(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
-    
+
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not IMAGE.exists():
         logging.ERROR("Error in found dir of images")
