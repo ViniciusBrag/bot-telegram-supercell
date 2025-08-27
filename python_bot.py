@@ -5,9 +5,15 @@ from dotenv import load_dotenv
 import os 
 from pathlib import Path
 import re
+from bot_telegram_store.utils import parse_order
+from pony.orm import db_session
+from bot_telegram_store.db import Order
 
+logging.basicConfig(
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    level=logging.INFO
+)
 REXEX_SERVICES = re.compile(r'\b(tela|telas|bateria|pelicula|peliculas|capinhas)\b', re.IGNORECASE)
-
 
 load_dotenv()
 
@@ -17,13 +23,13 @@ TOKEN_API = os.getenv("TOKEN").strip()
 
 
 
-logging.basicConfig(
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    level=logging.INFO
-)
-async def save_order(update: Update, context: ContextTypes.DEFAULT_TYPE):
+@db_session
+async def save_order(update: Update, context: ContextTypes.DEFAULT_TYPE, quantity_order: str, model_order: str):
+    order = Order(quantity=int(quantity_order), model=model_order)
+    commit()
+    await context.bot.send_message(chat_id=update.effective_chat.id, text=f"*{update.effective_user.first_name} Pedido efetuado com sucesso*", parse_mode="Markdown")
 
-async def save_order_pelicula(update: Update, context: ContextTypes.DEFAULT_TYPE):
+#async def save_order_pelicula(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -40,7 +46,7 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 photo=photo,
                 caption=f"📷 Examples como enviar mensagem para o BOT: {img_path.name}"
             )
-            logging.INFO(f"Send photos {img_path}")
+   
 
 
 async def verify_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -50,12 +56,15 @@ async def verify_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
     match = REXEX_SERVICES.search(text)
     if match:
         word = match.group(1).lower()
+
         if "bateria" in word:
-            await save_order(update, context)
+            quantity, model = parse_order(text)
+            await save_order(update, context, quantity, model)
         elif "tela" in word:
-            await save_order(update, context)
-        elif "pel" in word:  
-            await save_order_pelicula(update, context)
+            quantity, model = parse_order(text)
+            await save_order(update, context, quantity, model)
+        #elif "pel" in word:  
+         #   await save_order_pelicula(update, context)
     else:
         await help_command(update, context)
   
